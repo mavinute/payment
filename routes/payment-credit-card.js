@@ -4,6 +4,7 @@ const router = express.Router();
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3';
 const ASAAS_API_KEY = 'YOUR_ASAAS_API_KEY'; // Substitua por sua chave da API do Asaas
+const url = 'https://sandbox.asaas.com/api/v3/subscriptions'
 
 router.post('/create-subscription', async (req, res) => {
   const subscriptionData = {
@@ -34,18 +35,19 @@ router.post('/create-subscription', async (req, res) => {
   };
   try {
     console.log('Subscription data:', subscriptionData); // Log dos dados da assinatura
-    const response = await router.post('https://sandbox.asaas.com/api/v3/subscriptions', subscriptionData, {
+    const response = await router.post(url, subscriptionData, {
       headers: {
         'Accept': 'application/json, text/plain, */*',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${process.env.ASAAS_API_KEY}`, // Cabeçalho Authorization
         'User-Agent': 'axios/1.7.2'
       }
-    }).then(res => {
-      console.log('Subscription created successfully:', res.data);
-      const resultSuccess = res.data
-      return res.status(200).json(resultSuccess)
     })
+      .then(res => {
+        console.log('Subscription created successfully:', res.data);
+        const resultSuccess = res.data
+        return res.status(200).json(resultSuccess)
+      })
       .catch(error => {
         console.error('Error creating:', error);
         const resultError = error
