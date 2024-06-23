@@ -35,7 +35,7 @@ router.post('/create-subscription', async (req, res) => {
   };
   try {
     console.log('Subscription data:', subscriptionData); // Log dos dados da assinatura
-    const response = await router.post(url, subscriptionData, {
+    const response = await axios.post(url, subscriptionData, {
       headers: {
         'Accept': 'application/json, text/plain, */*',
         'Content-Type': 'application/json',

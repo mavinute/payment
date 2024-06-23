@@ -25,24 +25,24 @@ router.post('/create-subscription-boleto', async (req, res) => {
   const subscriptionData = req.body;
 
   try {
-    const response = await router.post(url, subscriptionData, options)
+    const response = await axios.post(url, subscriptionData, options)
       .then(response => {
         console.log('Subscription data:', response.data);
 
         // Verifica se há um link para o boleto na resposta
         if (response.data) {
-          res.json({ subscriptionId: response.data.id, status: response.data.status });
+          return res.json({ subscriptionId: response.data.id, status: response.data.status });
         } else {
           res.status(500).json({ error: 'Erro ao criar a assinatura' });
         }
       })
       .catch(error => {
         console.error('Error creating subscription:', error.message);
-        res.status(500).json({ error: 'Erro ao processar a assinatura' });
-      });
+        return res.status(500).json({ error: 'Erro ao processar a assinatura' });
+      })
   } catch (error) {
     console.error('Error creating subscription:', error.message);
-    res.status(500).json({ error: 'Erro ao processar a assinatura' });
+    return res.status(500).json({ error: 'Erro ao processar a assinatura' });
   }
 });
 

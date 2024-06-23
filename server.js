@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+require('dotenv').config(); // Carregar variáveis de ambiente
 
 const paymentRoutesCreditCard = require('./routes/payment-credit-card');
 const paymentRoutesBillet = require('./routes/payment-billet');
@@ -9,7 +10,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-//app.use(express.json());
+app.use(express.json());
 app.use("/api", paymentRoutesCreditCard);
 app.use("/api", paymentRoutesBillet);
 app.use("/api", paymentRoutesPix)
