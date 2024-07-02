@@ -1,56 +1,40 @@
 // Importação das dependências necessárias
 const express = require('express');
-const axios = require('axios');
 require('dotenv').config(); // Carregar variáveis de ambiente a partir do arquivo .env
 
 // Configurações básicas
 const router = express.Router();
-
-// Defina sua chave de API da Asaas
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY;
-
-const url = 'https://www.asaas.com/api/v3/payments';
+const apiClient = require('../api/api')
 
 // Endpoint para criar um pagamento PIX
-router.post('/criar-pagamento-pix', async (req, res) => {
-  // Dados do pagamento (exemplo: recebendo via body da requisição)
-  const { valor, descricao, cliente_id, ciclo, data_vencimento } = req.body;
-
-  // Dados do pagamento PIX
-  const dadosPagamento = {
-    customer: cliente_id,
-    billingType: 'PIX',
-    value: valor,
-    nextDueDate: data_vencimento,
-    cycle: ciclo, // 'MONTHLY', 'QUARTERLY', 'SEMIANNUALLY', 'YEARLY'
-    description: descricao,
-    dueDateLimitDays: 10 // Número de dias limite para pagamento após o vencimento
-  };
+router.post('/create-payment-pix', async (req, res) => {
+  const paymentData = req.body;
 
   try {
-    const response = await axios.post(url, dadosPagamento, {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ASAAS_API_KEY}`, // Cabeçalho Authorization
-      }
-    });
+    const response = await apiClient.post('/payments', paymentData);
 
-    if (paymentResponse.status === 200 || paymentResponse.status === 201) {
-      const paymentData = paymentResponse.data;
+    console.log('Payment data:', response.data);
 
-      // Retorna o QR Code na resposta
-      return res.status(200).json({
-        paymentId: paymentData.id,
-        pixQrCode: paymentData.pixQrCode,
-        pixQrCodeUrl: paymentData.pixQrCodeUrl
-      });
+    if (response.data) {
+      return res.json({ paymentId: response.data.id, status: response.data.status, pixQrCode: response.data.pixQrCode });
     } else {
-      throw new Error(`Erro ao criar pagamento PIX: ${paymentResponse.statusText}`);
+      res.status(500).json({ error: 'Erro ao criar o pagamento' });
     }
   } catch (error) {
-    console.error('Erro ao criar pagamento PIX:', error.message);
-    return res.status(500).json({ error: 'Erro ao processar pagamento PIX' });
+    console.error('Error creating payment:', error.message);
+
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      return res.status(error.response.status).json({ error: error.response.data });
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      return res.status(500).json({ error: 'No response from the server' });
+    } else {
+      console.error('Error setting up request:', error.message);
+      return res.status(500).json({ error: 'Erro ao processar o pagamento' });
+    }
   }
 });
 

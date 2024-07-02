@@ -1,48 +1,36 @@
 const express = require('express');
-const axios = require('axios');
-
 const router = express.Router();
 
-//const ASAAS_API_KEY = '$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDA0NDE1MjI6OiRhYWNoXzNjZjM3MTFkLWIyYjctNDkwMi1iNzQ5LWM2OTkwMzdjMWU3NA =='
+const apiClient = require('../api/api')
 
-// Rota para criar pagamento via boleto bancário
 router.post('/create-subscription-boleto', async (req, res) => {
-  const url = 'https://sandbox.asaas.com/api/v3/subscriptions';
-
-  const options = {
-    headers: {
-      'Accept': 'application/json, text/plain, */*',
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.ASAAS_API_KEY}`, // Cabeçalho Authorization
-      'User-Agent': 'axios/1.7.2'
-    }
-    // headers: {
-    //   'Content-Type': 'application/json',
-    //   'access_token': ASAAS_API_KEY
-    // }
-  }
-
   const subscriptionData = req.body;
 
   try {
-    const response = await axios.post(url, subscriptionData, options)
-      .then(response => {
-        console.log('Subscription data:', response.data);
+    const response = await apiClient.post('/subscriptions', subscriptionData);
 
-        // Verifica se há um link para o boleto na resposta
-        if (response.data) {
-          return res.json({ subscriptionId: response.data.id, status: response.data.status });
-        } else {
-          res.status(500).json({ error: 'Erro ao criar a assinatura' });
-        }
-      })
-      .catch(error => {
-        console.error('Error creating subscription:', error.message);
-        return res.status(500).json({ error: 'Erro ao processar a assinatura' });
-      })
+    console.log('Subscription data:', response.data);
+
+    if (response.data) {
+      return res.json({ subscriptionId: response.data.id, status: response.data.status });
+    } else {
+      res.status(500).json({ error: 'Erro ao criar a assinatura' });
+    }
   } catch (error) {
     console.error('Error creating subscription:', error.message);
-    return res.status(500).json({ error: 'Erro ao processar a assinatura' });
+
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      return res.status(error.response.status).json({ error: error.response.data });
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      return res.status(500).json({ error: 'No response from the server' });
+    } else {
+      console.error('Error setting up request:', error.message);
+      return res.status(500).json({ error: 'Erro ao processar a assinatura' });
+    }
   }
 });
 
