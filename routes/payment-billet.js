@@ -5,6 +5,7 @@ const apiClient = require('../api/api')
 
 router.post('/create-subscription-boleto', async (req, res) => {
   const subscriptionData = req.body;
+  console.log("CPF-CNPJ: ", subscriptionData.cpfCnpj)
 
   try {
     const response = await apiClient.post('/subscriptions', subscriptionData);

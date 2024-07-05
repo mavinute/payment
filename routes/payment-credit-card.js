@@ -17,6 +17,7 @@ router.post('/create-subscription', async (req, res) => {
     billingType: 'CREDIT_CARD',
     nextDueDate: req.body.nextDueDate,
     value: req.body.value,
+    dueDate: req.body.dueDate,
     cycle: req.body.cycle,
     description: req.body.description,
     creditCard: {
