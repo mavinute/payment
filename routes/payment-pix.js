@@ -11,7 +11,7 @@ router.post('/create-payment-pix', async (req, res) => {
   const paymentData = req.body;
 
   try {
-    const response = await apiClient.post('/payments', paymentData);
+    const response = await apiClient.post('/pix/qrCodes/static', paymentData);
 
     console.log('Payment data:', response.data);
 
