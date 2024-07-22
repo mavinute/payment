@@ -11,30 +11,20 @@ router.post('/create-payment-pix', async (req, res) => {
   const paymentData = req.body;
 
   try {
-    const response = await apiClient.post('/pix/qrCodes/static', paymentData);
+    const response = await apiClient.post('/payments', paymentData);
 
     console.log('Payment data:', response.data);
 
-    if (response.data) {
-      return res.json({ paymentId: response.data.id, status: response.data.status, pixQrCode: response.data.pixQrCode });
-    } else {
-      res.status(500).json({ error: 'Erro ao criar o pagamento' });
-    }
-  } catch (error) {
-    console.error('Error creating payment:', error.message);
+    const qrCodeResponse = await apiClient.get(`/payments/${response.data.id}/pixQrCode`)
 
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-      return res.status(error.response.status).json({ error: error.response.data });
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-      return res.status(500).json({ error: 'No response from the server' });
-    } else {
-      console.error('Error setting up request:', error.message);
-      return res.status(500).json({ error: 'Erro ao processar o pagamento' });
-    }
+    console.log("qrCodeResponse: ", qrCodeResponse.data)
+
+    //return qrCodeResponse.data
+    return res.status(200).json(qrCodeResponse.data)
+  } catch (error) {
+    console.error('Erro ao criar cobrança:');
+    //console.error(error.response ? error.response.data : error.message);
+    return res.status(400).json({ error: error.response.data });
   }
 });
 

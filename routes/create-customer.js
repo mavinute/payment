@@ -12,7 +12,7 @@ router.post("/create-customer", async (req, res) => {
     email: req.body.email,
     // phone: req.body.phone,
     // mobilePhone: req.body.mobilePhone,
-    // cpfCnpj: req.body.cpfCnpj,
+    cpfCnpj: req.body.cpfCnpj,
     // postalCode: req.body.postalCode,
     // address: req.body.address,
     // addressNumber: req.body.addressNumber,
