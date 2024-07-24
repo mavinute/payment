@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const apiClient = require('../api/api');
+const axios = require('axios');
+
+// Configuração do cliente axios com a URL base e headers
+const apiClient = axios.create({
+  baseURL: 'https://www.asaas.com/api/v3', // URL base da API
+  headers: {
+    'Content-Type': 'application/json',
+    //'User-Agent': 'payment',
+    'access_token': process.env.ASAAS_API_KEY,
+  },
+  timeout: 10000 // Tempo limite em milissegundos (10 segundos)
+});
 
 // Endpoint para criar uma assinatura com boleto bancário
 router.post('/create-subscription-boleto', async (req, res) => {
@@ -15,6 +26,9 @@ router.post('/create-subscription-boleto', async (req, res) => {
     cycle // Certifique-se de que o campo cycle está presente
   } = req.body;
 
+  // Log dos dados recebidos
+  console.log('Dados recebidos para assinatura:', req.body);
+
   // Validação dos dados de entrada
   if (!customer || !billingType || !dueDate || !value || !description || !externalReference || !cpfCnpj || !cycle) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
@@ -22,9 +36,9 @@ router.post('/create-subscription-boleto', async (req, res) => {
 
   try {
     // Criação da assinatura
-    const subscriptionResponse = await apiClient.post('/v3/subscriptions', {
+    const subscriptionResponse = await apiClient.post('/subscriptions', {
       customer,
-      billingType: 'BOLETO', // Confirme que este é o valor correto
+      billingType: 'BOLETO', // Certifique-se de que este é o valor correto
       dueDate,
       value,
       description,
@@ -33,25 +47,32 @@ router.post('/create-subscription-boleto', async (req, res) => {
       cycle
     });
 
+    //return console.log("subscriptionResponse: ", subscriptionResponse)
+
     const subscriptionData = subscriptionResponse.data;
 
+    // Log da resposta da criação da assinatura
     console.log('Subscription data:', subscriptionData);
 
     // Verificar se a assinatura foi criada com sucesso
     if (subscriptionData && subscriptionData.id) {
-      // Obter detalhes do boleto
       const subscriptionId = subscriptionData.id;
 
       // Checando se a URL está correta para obter o boleto
-      const boletoResponse = await apiClient.get(`/v3/subscriptions/${subscriptionId}/boleto`);
+      const boletoResponse = await apiClient.get(`/subscriptions/${subscriptionId}/boleto`);
+      console.log("boletoResponse: ", boletoResponse)
+
       const boletoData = boletoResponse.data;
 
-      // Verificar se o boleto está presente na resposta
+      //return console.log("boletoData: ", boletoData)
+
+      // Log da resposta do boleto
+      console.log('Boleto data:', boletoData);
+
       if (!boletoData || !boletoData.url) {
         return res.status(500).json({ error: 'Erro ao obter o boleto bancário.' });
       }
 
-      // Retornar os dados necessários
       return res.status(200).json({
         subscriptionId: subscriptionData.id,
         status: subscriptionData.status,
@@ -59,11 +80,11 @@ router.post('/create-subscription-boleto', async (req, res) => {
         boletoBarcode: boletoData.barcode
       });
     } else {
-      res.status(500).json({ error: 'Erro ao criar a assinatura' });
+      return res.status(500).json({ error: 'Erro ao criar a assinatura' });
     }
   } catch (error) {
+    // Log de erro detalhado
     console.error('Erro ao criar a assinatura:', error.message);
-
     if (error.response) {
       console.error('Response data:', error.response.data);
       console.error('Response status:', error.response.status);
@@ -80,6 +101,8 @@ router.post('/create-subscription-boleto', async (req, res) => {
 });
 
 module.exports = router;
+
+
 
 
 // const express = require('express');
