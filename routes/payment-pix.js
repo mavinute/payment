@@ -2,6 +2,7 @@
 const express = require('express');
 require('dotenv').config(); // Carregar variáveis de ambiente a partir do arquivo .env
 const axios = require('axios'); // Supondo que você está usando axios para chamadas API
+
 const router = express.Router();
 const apiClient = require('../api/api')
 
@@ -25,24 +26,32 @@ router.post('/create-payment-pix', async (req, res) => {
       externalReference,
       cpfCnpj
     });
+    //console.log("paymentResponse: ", paymentResponse.data)
 
     const paymentId = paymentResponse.data.id;
 
     // Obtenção do QR Code
     const qrCodeResponse = await apiClient.get(`/payments/${paymentId}/pixQrCode`);
+    console.log("qrCodeResponse: ", qrCodeResponse.data)
+
+    // Verificar se o QR Code está presente na resposta
+    if (!qrCodeResponse.data || !qrCodeResponse.data.encodedImage) {
+      return res.status(500).json({ error: 'QR Code não encontrado.' });
+    }
 
     // Responder com os dados necessários
     return res.status(200).json({
       id: paymentId,
-      qrCode: qrCodeResponse.data.qrCode
+      qrCode: qrCodeResponse.data.encodedImage // Certifique-se de que qrCode está disponível
     });
   } catch (error) {
-    console.error('Erro ao criar pagamento PIX:', error);
+    console.error('Erro ao criar pagamento PIX:', error.response ? error.response.data : error.message);
     return res.status(500).json({ error: 'Erro interno do servidor. Tente novamente mais tarde.' });
   }
 });
 
 module.exports = router;
+
 
 
 // // Importação das dependências necessárias
